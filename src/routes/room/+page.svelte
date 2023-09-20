@@ -1,0 +1,225 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+
+	import Icon from '@iconify/svelte';
+	import BiCamera from "svelte-icons-pack/bi/BiCamera";
+	import BiCameraOff from "svelte-icons-pack/bi/BiCameraOff";
+	import BiMicrophone from "svelte-icons-pack/bi/BiMicrophone";
+	import BiMicrophoneOff from "svelte-icons-pack/bi/BiMicrophoneOff";
+	let roomID = $page.url.searchParams.get('roomID');
+	
+	let cam:boolean = true;
+	let audio:boolean = true;
+
+	import AgoraRTM, { type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
+	let APP_ID = '327e618e01764a55bab9c40c50128329';
+
+	let uid = String(Math.floor(Math.random() * 10000));
+	var localStream: MediaStream;
+	var remoteStream: MediaStream;
+
+	let localVideoElement: HTMLVideoElement;
+	let remoteVideoElement: HTMLVideoElement;
+
+	let pc: RTCPeerConnection;
+
+	let client: RtmClient;
+	let channel: RtmChannel;
+
+	const config = {
+		iceServers: [
+			{
+				urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
+			}
+		]
+	};
+
+	let init = async (roomID: string) => {
+		client = AgoraRTM.createInstance(APP_ID);
+
+		await client.login({ uid });
+		// Any Room ID
+		channel = client.createChannel(roomID);
+		await channel.join();
+
+		channel.on('MemberJoined', handleUserJoined);
+		client.on('MessageFromPeer', handleMessageFromPeer);
+		localStream = await navigator.mediaDevices.getUserMedia({
+			video: true,
+			audio: true
+		});
+
+		localVideoElement.srcObject = localStream;
+	};
+
+	let handleMessageFromPeer = async (message: any, MemberId: any) => {
+		message = JSON.parse(message.text);
+		if (message.type === 'offer') {
+			createAnswer(MemberId, message.offer);
+		}
+		if (message.type === 'answer') {
+			addAnswer(MemberId, message.answer);
+		}
+		if (message.type === 'candidate') {
+			if (pc) {
+				pc.addIceCandidate(message.candidate);
+			}
+		}
+	};
+
+	let handleUserJoined = async (MemberId: string) => {
+		console.log('A new user Joined the channel:', MemberId);
+		createOffer(MemberId);
+	};
+
+	let createPeerConnection = async (MemberId: string) => {
+		pc = new RTCPeerConnection(config);
+
+		remoteStream = new MediaStream();
+		remoteVideoElement.srcObject = remoteStream;
+
+		if (!localStream) {
+			localStream = await navigator.mediaDevices.getUserMedia({
+				video: true,
+				audio: true
+			});
+			localVideoElement.srcObject = localStream;
+		}
+
+		localStream.getTracks().forEach((track) => {
+			pc.addTrack(track, localStream);
+		});
+
+		pc.ontrack = (event: any) => {
+			event.streams[0].getTracks().forEach((track: MediaStreamTrack) => {
+				remoteStream.addTrack(track);
+			});
+		};
+
+		pc.onicecandidate = async (event: any) => {
+			if (event.candidate) {
+				client.sendMessageToPeer(
+					{
+						text: JSON.stringify({
+							type: 'candidate',
+							candidate: event.candidate
+						})
+					},
+					MemberId
+				);
+			}
+		};
+	};
+
+	let createOffer = async (MemberId: string) => {
+		await createPeerConnection(MemberId);
+
+		let offer = await pc.createOffer();
+		await pc.setLocalDescription(offer);
+
+		client.sendMessageToPeer({ text: JSON.stringify({ type: 'offer', offer: offer }) }, MemberId);
+	};
+
+	let createAnswer = async (MemberId: string, offer: RTCSessionDescriptionInit) => {
+		await createPeerConnection(MemberId);
+
+		await pc.setRemoteDescription(offer);
+		let answer = await pc.createAnswer();
+		await pc.setLocalDescription(answer);
+
+		client.sendMessageToPeer(
+			{ text: JSON.stringify({ type: 'answer', answer: answer }) },
+			MemberId
+		);
+	};
+
+	let addAnswer = async (MemberId: string, answer: RTCSessionDescriptionInit) => {
+		if (!pc.currentRemoteDescription) {
+			await pc.setRemoteDescription(answer);
+		}
+	};
+
+	if (roomID !== null && roomID.length > 4) {
+		init(roomID);
+	} else goto('/', { replaceState: true });
+
+	console.log(roomID);
+
+
+let toggleVIdeo = async()=>{
+	let videoTrack =  localStream.getTracks().find(track=> track.kind ==='video');
+
+	if(videoTrack){
+	if(videoTrack?.enabled){
+		videoTrack.enabled = false;
+		cam=false
+	}
+	else{
+		videoTrack.enabled = true;
+		cam=true
+	}}
+}
+let toggleAudio = async()=>{
+	let audioTrack = localStream.getTracks().find(track=> track.kind ==='audio');
+
+	if(audioTrack){
+		if(audioTrack.enabled){
+		audioTrack.enabled = false;
+		audio=false
+	}
+	else{
+		audioTrack.enabled = true;
+		audio=true
+
+	}}
+}
+</script>
+
+{#if roomID !== null && roomID.length > 4}
+<main class="w-full flex flex-col items-center h-screen justify-center">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <!-- svelte-ignore a11y-media-has-caption -->
+        <video
+            bind:this={localVideoElement}
+            playsinline
+            autoplay
+            muted
+            class="aspect-video w-full h-56 bg-black"
+        />
+        <!-- svelte-ignore a11y-media-has-caption -->
+        <video
+            playsinline
+            autoplay
+            bind:this={remoteVideoElement}
+            class="aspect-video w-full h-56 bg-black"
+        />
+    </div>
+	<div class="inline-flex items-center justify-center gap-4 mt-3">
+		<button class={!cam?'p-2 bg-red-500 text-white rounded-md':'p-2 bg-green-500 text-white rounded-md'} on:click|preventDefault={()=>toggleVIdeo()}>
+			{#if cam}
+			<Icon icon="bx:camera" />
+
+			{:else}
+			<Icon icon='bx:camera-off'/>
+			{/if}
+
+		</button>
+		<button
+		class={!audio?'p-2 bg-red-500 text-white rounded-md':'p-2 bg-green-500 text-white rounded-md'}
+		on:click|preventDefault={()=>toggleAudio()}>
+		{#if audio}
+		<Icon icon='bx:microphone'/>
+		{:else}
+		<Icon icon='bx:microphone-off' />
+		{/if}
+	</button>
+	</div>
+</main>
+{:else}
+	<main />
+{/if}
+<svelte:head>
+	<title>Video Call</title>
+	<meta name="description" content="FOSS: Video Calling app built using webrtc." />
+</svelte:head>
