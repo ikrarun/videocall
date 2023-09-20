@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { PUBLIC_APPID } from '$env/static/public';
 
 	import Icon from '@iconify/svelte';
-	import BiCamera from "svelte-icons-pack/bi/BiCamera";
-	import BiCameraOff from "svelte-icons-pack/bi/BiCameraOff";
-	import BiMicrophone from "svelte-icons-pack/bi/BiMicrophone";
-	import BiMicrophoneOff from "svelte-icons-pack/bi/BiMicrophoneOff";
 	let roomID = $page.url.searchParams.get('roomID');
 	
 	let cam:boolean = true;
 	let audio:boolean = true;
 
 	import AgoraRTM, { type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
-	let APP_ID = '327e618e01764a55bab9c40c50128329';
+	let APP_ID = PUBLIC_APPID;
 
 	let uid = String(Math.floor(Math.random() * 10000));
 	var localStream: MediaStream;
