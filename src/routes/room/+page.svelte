@@ -146,7 +146,6 @@
 
 let toggleVIdeo = async()=>{
 	let videoTrack =  localStream.getTracks().find(track=> track.kind ==='video');
-
 	if(videoTrack){
 	if(videoTrack?.enabled){
 		videoTrack.enabled = false;
