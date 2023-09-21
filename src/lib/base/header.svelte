@@ -4,9 +4,9 @@
     // @ts-ignore
     import Icon from 'svelte-icons-pack/Icon.svelte';
     import BiDonateHeart from "svelte-icons-pack/bi/BiDonateHeart";
-    import BiHelpCircle from "svelte-icons-pack/bi/BiHelpCircle";
 
     import logo from '$lib/images/logo.svg'
+	import toast, { Toaster } from 'svelte-french-toast';
 
 </script>
 
@@ -17,13 +17,17 @@
             <h1 class=" text-xl">Video Call</h1>
         </button>
     <ul class="inline-flex items-center justify-center gap-4">
-        <li>
+        <button on:click|preventDefault={()=>{
+            toast.dismiss();
+            toast.success(`Thanks for trying to support but we don't recieve any donations`,{
+            position:'top-center'
+        })}}>
             <Icon src={BiDonateHeart} />
-        </li>
-        
-        <li>
+        </button>
+        <Toaster containerClassName='text-sm'/>
+        <!-- <li>
             <Icon src={BiHelpCircle} />
-        </li>
+        </li> -->
     </ul>
     </nav>
 </div>
