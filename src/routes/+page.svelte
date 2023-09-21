@@ -30,10 +30,10 @@
 
 <main class="w-full flex gap-4 h-screen items-center justify-center flex-col">
 	<div
-		class="w-full h-full items-center
+		class="w-full h-full items-center justify-center
 	 flex flex-col-reverse sm:grid sm:grid-cols-2"
 	>
-		<div class="w-full px-10 select-none h-full flex flex-col sm:items-start justify-center">
+		<div class="w-full px-10 select-none h-fit sm:h-full flex flex-col sm:items-start justify-center">
 			<h1 class="text-6xl">Meet Now</h1>
 			<h1 class="text-base text-gray-600">
 				Peer 2 Peer Video Calls! Free, Secure, and Open-Source Meetup Solution! Connect,
@@ -74,7 +74,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col items-start sm:items-center">
+		<div class="flex flex-col h-1/2 pl-6 sm:p-0 sm:h-full items-start justify-end sm:items-center">
 			<img src={logo} class="w-1/2 aspect-square" alt="" />
 		</div>
 	</div>
