@@ -2,7 +2,8 @@
 	// @ts-ignore
 	import Icon from 'svelte-icons-pack/Icon.svelte';
 	import BsKeyboard from 'svelte-icons-pack/bs/BsKeyboard';
-
+	import type { PageData } from './$types.js';
+	export let data: PageData;
 	import logo from '$lib/images/logo.svg';
 
 	import { getNotificationsContext } from 'svelte-notifications';
@@ -12,7 +13,6 @@
 	let meetingID: string;
 	import { goto } from '$app/navigation';
 
-	let randomRoomId = String(Math.floor(Math.random() * 10000000));
 	let JoinCall = async () => {
 		if (meetingID) {
 			goto(`/room?roomID=${meetingID}`);
@@ -23,6 +23,7 @@
 			});
 		}
 	};
+
 </script>
 
 <main class="w-full flex gap-4 h-screen items-center justify-center flex-col">
@@ -41,7 +42,7 @@
 				<button
 					class="p-[0.6rem] bg-blue-700 rounded-sm text-white"
 					on:click|preventDefault={() => {
-						goto(`/room?roomID=${randomRoomId}`);
+						goto(`/room?roomID=${data}`);
 					}}>Create Call</button
 				>
 

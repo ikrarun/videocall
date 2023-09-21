@@ -17,6 +17,7 @@
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.20.4",
 		"@types/cookie": "^0.5.1",
+		"@types/uuid": "^9.0.4",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
 		"autoprefixer": "^10.4.14",
@@ -40,6 +41,7 @@
 		"agora-rtm-sdk": "^1.5.1",
 		"radix-svelte": "^0.9.0",
 		"svelte-icons-pack": "^2.1.0",
-		"svelte-notifications": "^0.9.98"
+		"svelte-notifications": "^0.9.98",
+		"uuid": "^9.0.1"
 	}
 }

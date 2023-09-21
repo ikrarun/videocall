@@ -1,5 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
+
     // @ts-ignore
     import Icon from 'svelte-icons-pack/Icon.svelte';
     import BiDonateHeart from "svelte-icons-pack/bi/BiDonateHeart";

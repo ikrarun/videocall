@@ -4,17 +4,16 @@
 	import { PUBLIC_APPID } from '$env/static/public';
 
 	import Icon from '@iconify/svelte';
-	let roomID = $page.url.searchParams.get('roomID');
-	
-	let cam:boolean = true;
-	let audio:boolean = true;
 
-	import AgoraRTM, { type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
+	let cam: boolean = true;
+	let audio: boolean = true;
+
+	import AgoraRTM ,{ type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
+
 	let APP_ID = PUBLIC_APPID;
 
-	let uid = String(Math.floor(Math.random() * 10000));
 	var localStream: MediaStream;
-	var remoteStream: MediaStream;
+	var remoteStream: MediaStream|null;
 
 	let localVideoElement: HTMLVideoElement;
 	let remoteVideoElement: HTMLVideoElement;
@@ -34,6 +33,7 @@
 
 	let init = async (roomID: string) => {
 		client = AgoraRTM.createInstance(APP_ID);
+		let uid = String(Math.floor(Math.random() * 10000));
 
 		await client.login({ uid });
 		// Any Room ID
@@ -42,6 +42,7 @@
 
 		channel.on('MemberJoined', handleUserJoined);
 		client.on('MessageFromPeer', handleMessageFromPeer);
+		channel.on('MemberLeft', handleMemberLeft)
 		localStream = await navigator.mediaDevices.getUserMedia({
 			video: true,
 			audio: true
@@ -49,6 +50,24 @@
 
 		localVideoElement.srcObject = localStream;
 	};
+
+	let handleMemberLeft = async (MemberId:any) =>{
+		if(remoteStream){
+			remoteStream.getTracks().forEach((track) => {
+				remoteStream?.removeTrack(track);
+			})
+		}
+		remoteStream =null
+		remoteVideoElement.style.display  = 'none'
+	}
+
+
+	let leaveChannel = async () =>{
+		await channel.leave();
+		await client.logout();
+	}
+
+	window.addEventListener('beforeunload',leaveChannel)
 
 	let handleMessageFromPeer = async (message: any, MemberId: any) => {
 		message = JSON.parse(message.text);
@@ -74,6 +93,7 @@
 		pc = new RTCPeerConnection(config);
 
 		remoteStream = new MediaStream();
+		remoteVideoElement.style.display ='block'
 		remoteVideoElement.srcObject = remoteStream;
 
 		if (!localStream) {
@@ -90,7 +110,7 @@
 
 		pc.ontrack = (event: any) => {
 			event.streams[0].getTracks().forEach((track: MediaStreamTrack) => {
-				remoteStream.addTrack(track);
+				remoteStream?.addTrack(track);
 			});
 		};
 
@@ -136,82 +156,93 @@
 			await pc.setRemoteDescription(answer);
 		}
 	};
+	let roomID = $page.url.searchParams.get('roomID');
 
-	if (roomID !== null && roomID.length > 4) {
-		init(roomID);
-	} else goto('/', { replaceState: true });
+		if (roomID !== null && roomID.length > 4) {
+			init(roomID);
+		} else goto('/', { replaceState: true });
 
-	console.log(roomID);
+	let toggleVIdeo = async () => {
+		let videoTrack = localStream.getTracks().find((track) => track.kind === 'video');
+		if (videoTrack) {
+			if (videoTrack?.enabled) {
+				videoTrack.enabled = false;
+				cam = false;
+			} else {
+				videoTrack.enabled = true;
+				cam = true;
+			}
+		}
+	};
+	let toggleAudio = async () => {
+		let audioTrack = localStream.getTracks().find((track) => track.kind === 'audio');
 
-
-let toggleVIdeo = async()=>{
-	let videoTrack =  localStream.getTracks().find(track=> track.kind ==='video');
-	if(videoTrack){
-	if(videoTrack?.enabled){
-		videoTrack.enabled = false;
-		cam=false
-	}
-	else{
-		videoTrack.enabled = true;
-		cam=true
-	}}
-}
-let toggleAudio = async()=>{
-	let audioTrack = localStream.getTracks().find(track=> track.kind ==='audio');
-
-	if(audioTrack){
-		if(audioTrack.enabled){
-		audioTrack.enabled = false;
-		audio=false
-	}
-	else{
-		audioTrack.enabled = true;
-		audio=true
-
-	}}
-}
+		if (audioTrack) {
+			if (audioTrack.enabled) {
+				audioTrack.enabled = false;
+				audio = false;
+			} else {
+				audioTrack.enabled = true;
+				audio = true;
+			}
+		}
+	};
 </script>
 
 {#if roomID !== null && roomID.length > 4}
-<main class="w-full flex flex-col items-center h-screen justify-center">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <!-- svelte-ignore a11y-media-has-caption -->
-        <video
-            bind:this={localVideoElement}
-            playsinline
-            autoplay
-            muted
-            class="aspect-video w-full h-56 bg-black"
-        />
-        <!-- svelte-ignore a11y-media-has-caption -->
-        <video
-            playsinline
-            autoplay
-            bind:this={remoteVideoElement}
-            class="aspect-video w-full h-56 bg-black"
-        />
-    </div>
-	<div class="inline-flex items-center justify-center gap-4 mt-3">
-		<button class={!cam?'p-2 bg-red-500 text-white rounded-md':'p-2 bg-green-500 text-white rounded-md'} on:click|preventDefault={()=>toggleVIdeo()}>
-			{#if cam}
-			<Icon icon="bx:camera" />
+	<main class="w-full flex flex-col items-center h-screen justify-center">
+		<div class={remoteStream ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'}>
+			<div class="aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black">
+				<!-- svelte-ignore a11y-media-has-caption -->
+				<video
+					bind:this={localVideoElement}
+					playsinline
+					autoplay
+					muted
+					class=" w-full h-56 object-cover"
+				/>
+			</div>
 
-			{:else}
-			<Icon icon='bx:camera-off'/>
-			{/if}
-
-		</button>
-		<button
-		class={!audio?'p-2 bg-red-500 text-white rounded-md':'p-2 bg-green-500 text-white rounded-md'}
-		on:click|preventDefault={()=>toggleAudio()}>
-		{#if audio}
-		<Icon icon='bx:microphone'/>
-		{:else}
-		<Icon icon='bx:microphone-off' />
-		{/if}
-	</button>
-	</div>
-</main>
+			<div class={remoteStream ? 'aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black' : 'hidden'}>
+				<!-- svelte-ignore a11y-media-has-caption -->
+				<video
+					playsinline
+					autoplay
+					bind:this={remoteVideoElement}
+					class=" w-full h-56 object-cover"
+				/>
+			</div>
+		</div>
+		<div class="inline-flex items-center justify-center gap-4 mt-3">
+			<button
+				class={!cam
+					? 'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'
+					: 'p-2 bg-green-500 text-2xl font-semibold text-white rounded-full'}
+				on:click|preventDefault={() => toggleVIdeo()}
+			>
+				{#if cam}
+					<Icon icon="bx:camera" />
+				{:else}
+					<Icon icon="bx:camera-off" />
+				{/if}
+			</button>
+			<button
+				class={!audio
+					? 'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'
+					: 'p-2 bg-green-500 text-2xl font-semibold text-white rounded-full'}
+				on:click|preventDefault={() => toggleAudio()}
+			>
+				{#if audio}
+					<Icon icon="bx:microphone" />
+				{:else}
+					<Icon icon="bx:microphone-off" />
+				{/if}
+			</button>
+			<button class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'}>
+				<Icon icon="fluent:call-end-16-regular" />
+			</button>
+		</div>
+	</main>
 {:else}
 	<main />
 {/if}
