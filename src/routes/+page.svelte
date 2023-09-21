@@ -74,7 +74,7 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col h-1/2 pl-6 sm:p-0 sm:h-full items-start justify-end sm:items-center">
+		<div class="flex flex-col h-1/2 pl-6 sm:p-0 sm:h-full items-start justify-end sm:justify-center ">
 			<img src={logo} class="w-1/2 aspect-square" alt="" />
 		</div>
 	</div>
