@@ -6,6 +6,8 @@
 	export let data: PageData;
 	import logo from '$lib/images/logo.svg';
 
+	console.log(data)
+
 	import { getNotificationsContext } from 'svelte-notifications';
 
 	const { addNotification } = getNotificationsContext();
@@ -42,7 +44,7 @@
 				<button
 					class="p-[0.6rem] bg-blue-700 rounded-sm text-white"
 					on:click|preventDefault={() => {
-						goto(`/room?roomID=${data}`);
+						goto(`/room?roomID=${data.newUuid}`);
 					}}>Create Call</button
 				>
 

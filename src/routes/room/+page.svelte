@@ -48,21 +48,23 @@
 			audio: true
 		});
 
-		localVideoElement.srcObject = localStream;
+		if(localStream) localVideoElement.srcObject = localStream;
 	};
 
-	let handleMemberLeft = async (MemberId:any) =>{
+	let handleMemberLeft = async () =>{
 		if(remoteStream){
 			remoteStream.getTracks().forEach((track) => {
 				remoteStream?.removeTrack(track);
 			})
 		}
 		remoteStream =null
-		remoteVideoElement.style.display  = 'none'
+
+		if(remoteVideoElement) remoteVideoElement.style.display  = 'none'
 	}
 
 
 	let leaveChannel = async () =>{
+		await stopCamera()
 		await channel.leave();
 		await client.logout();
 	}
@@ -84,17 +86,36 @@
 		}
 	};
 
+	let endCall = async () =>{
+		await stopCamera()
+		await handleMemberLeft();
+		await leaveChannel();
+		goto('/')
+	}
+
+	let stopCamera =async () => {
+		if(localStream){
+			const tracks = localStream.getTracks();
+			tracks.forEach(track=>{
+				track.stop();
+				localStream.removeTrack(track)
+			})
+		}
+	}
+
+
+
 	let handleUserJoined = async (MemberId: string) => {
-		console.log('A new user Joined the channel:', MemberId);
+		// console.log('A new user Joined the channel:', MemberId);
 		createOffer(MemberId);
 	};
 
 	let createPeerConnection = async (MemberId: string) => {
 		pc = new RTCPeerConnection(config);
-
 		remoteStream = new MediaStream();
-		remoteVideoElement.style.display ='block'
+		if(remoteVideoElement!=null) {remoteVideoElement.style.display ='block'
 		remoteVideoElement.srcObject = remoteStream;
+	}
 
 		if (!localStream) {
 			localStream = await navigator.mediaDevices.getUserMedia({
@@ -238,7 +259,7 @@
 					<Icon icon="bx:microphone-off" />
 				{/if}
 			</button>
-			<button class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'}>
+			<button class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'} on:click|preventDefault={endCall}>
 				<Icon icon="fluent:call-end-16-regular" />
 			</button>
 		</div>
