@@ -9,12 +9,13 @@
 	let cam: boolean = true;
 	let audio: boolean = true;
 
-	import AgoraRTM ,{ type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
+	import AgoraRTM, { type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
+	import { onDestroy } from 'svelte';
 
 	let APP_ID = PUBLIC_APPID;
 
 	var localStream: MediaStream;
-	var remoteStream: MediaStream|null;
+	var remoteStream: MediaStream | null;
 
 	let localVideoElement: HTMLVideoElement;
 	let remoteVideoElement: HTMLVideoElement;
@@ -43,36 +44,39 @@
 
 		channel.on('MemberJoined', handleUserJoined);
 		client.on('MessageFromPeer', handleMessageFromPeer);
-		channel.on('MemberLeft', handleMemberLeft)
+		channel.on('MemberLeft', handleMemberLeft);
 		localStream = await navigator.mediaDevices.getUserMedia({
 			video: true,
 			audio: true
 		});
 
-		if(localStream) localVideoElement.srcObject = localStream;
+		if (localStream) localVideoElement.srcObject = localStream;
 	};
 
-	let handleMemberLeft = async () =>{
-		if(remoteStream){
+	let handleMemberLeft = async () => {
+		if (remoteStream) {
 			remoteStream.getTracks().forEach((track) => {
 				remoteStream?.removeTrack(track);
-			})
+			});
 		}
-		remoteStream =null
+		remoteStream = null;
 
-		if(remoteVideoElement) remoteVideoElement.style.display  = 'none'
-	}
+		if (remoteVideoElement) remoteVideoElement.style.display = 'none';
+	};
 
-
-	let leaveChannel = async () =>{
-		await stopCamera()
+	let leaveChannel = async () => {
+		await stopCamera();
 		await channel.leave();
 		await client.logout();
-	}
+	};
 
-	window.addEventListener('beforeunload',()=>{
-		stopCamera().then(()=>leaveChannel())
-	})
+	onDestroy(() => {
+		// Clean up the event listener when the component is destroyed
+		window.removeEventListener('beforeunload', leaveChannel);
+	});
+
+	// Add the event listener when the component is created
+	window.addEventListener('beforeunload', leaveChannel);
 
 	let handleMessageFromPeer = async (message: any, MemberId: any) => {
 		message = JSON.parse(message.text);
@@ -89,24 +93,22 @@
 		}
 	};
 
-	let endCall = async () =>{
-		await stopCamera()
+	let endCall = async () => {
+		await stopCamera();
 		await handleMemberLeft();
 		await leaveChannel();
-		goto('/')
-	}
+		goto('/');
+	};
 
-	let stopCamera =async () => {
-		if(localStream){
+	let stopCamera = async () => {
+		if (localStream) {
 			const tracks = localStream.getTracks();
-			tracks.forEach(track=>{
+			tracks.forEach((track) => {
 				track.stop();
-				localStream.removeTrack(track)
-			})
+				localStream.removeTrack(track);
+			});
 		}
-	}
-
-
+	};
 
 	let handleUserJoined = async (MemberId: string) => {
 		// console.log('A new user Joined the channel:', MemberId);
@@ -116,9 +118,10 @@
 	let createPeerConnection = async (MemberId: string) => {
 		pc = new RTCPeerConnection(config);
 		remoteStream = new MediaStream();
-		if(remoteVideoElement!=null) {remoteVideoElement.style.display ='block'
-		remoteVideoElement.srcObject = remoteStream;
-	}
+		if (remoteVideoElement != null) {
+			remoteVideoElement.style.display = 'block';
+			remoteVideoElement.srcObject = remoteStream;
+		}
 
 		if (!localStream) {
 			localStream = await navigator.mediaDevices.getUserMedia({
@@ -182,9 +185,9 @@
 	};
 	let roomID = $page.url.searchParams.get('roomID');
 
-		if (roomID !== null && roomID.length > 4) {
-			init(roomID);
-		} else goto('/', { replaceState: true });
+	if (roomID !== null && roomID.length > 4) {
+		init(roomID);
+	} else goto('/', { replaceState: true });
 
 	let toggleVIdeo = async () => {
 		let videoTrack = localStream.getTracks().find((track) => track.kind === 'video');
@@ -216,7 +219,9 @@
 {#if roomID !== null && roomID.length > 4}
 	<main class="w-full flex flex-col items-center screen justify-center">
 		<div class={remoteStream ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'}>
-			<div class="aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black">
+			<div
+				class="aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black"
+			>
 				<!-- svelte-ignore a11y-media-has-caption -->
 				<video
 					bind:this={localVideoElement}
@@ -227,7 +232,11 @@
 				/>
 			</div>
 
-			<div class={remoteStream ? 'aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black' : 'hidden'}>
+			<div
+				class={remoteStream
+					? 'aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black'
+					: 'hidden'}
+			>
 				<!-- svelte-ignore a11y-media-has-caption -->
 				<video
 					playsinline
@@ -262,10 +271,17 @@
 					<Icon icon="bx:microphone-off" />
 				{/if}
 			</button>
-			<button class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'} on:click|preventDefault={endCall}>
+			<button
+				class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'}
+				on:click|preventDefault={endCall}
+			>
 				<Icon icon="fluent:call-end-16-regular" />
 			</button>
-			<Share title={'Meeting ID'} text={'Share this link other person'} url={$page.url.toString()} />
+			<Share
+				title={'Meeting ID'}
+				text={'Share this link other person'}
+				url={$page.url.toString()}
+			/>
 		</div>
 	</main>
 {:else}
