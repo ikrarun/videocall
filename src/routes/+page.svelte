@@ -28,7 +28,7 @@
 
 </script>
 
-<main class="w-full flex gap-4 h-screen items-center justify-center flex-col">
+<main class="w-full flex gap-4 screen items-center justify-center flex-col">
 	<div
 		class="w-full h-full items-center justify-center
 	 flex flex-col-reverse sm:grid sm:grid-cols-2"

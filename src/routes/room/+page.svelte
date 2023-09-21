@@ -212,7 +212,7 @@
 </script>
 
 {#if roomID !== null && roomID.length > 4}
-	<main class="w-full flex flex-col items-center h-screen justify-center">
+	<main class="w-full flex flex-col items-center screen justify-center">
 		<div class={remoteStream ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'grid grid-cols-1 gap-2'}>
 			<div class="aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black">
 				<!-- svelte-ignore a11y-media-has-caption -->
