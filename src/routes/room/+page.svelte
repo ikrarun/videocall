@@ -73,23 +73,19 @@
 
 	onDestroy(() => {
 		// Clean up the event listener when the component is destroyed
-		 window.addEventListener('beforeunload', leaveChannel);
-		 leaveChannel()
+		window.addEventListener('beforeunload', leaveChannel);
+		leaveChannel();
 	});
 
-
 	beforeNavigate(leaveChannel);
-	
 
 	try {
 		window.addEventListener('beforeunload', leaveChannel);
-
 	} catch (error) {
 		toast.error('Before Unload Not Working', {
-	position: "bottom-left"
-})
+			position: 'bottom-left'
+		});
 	}
-
 
 	// Add the event listener when the component is created
 
@@ -246,7 +242,7 @@
 					class=" w-full h-56 object-cover"
 				/>
 			</div>
-<Toaster/>
+			<Toaster />
 			<div
 				class={remoteStream
 					? 'aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black'
