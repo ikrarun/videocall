@@ -31,7 +31,7 @@
 <main class="w-full flex gap-4 h-screen items-center justify-center flex-col">
 	<div
 		class="w-full h-full items-center
-	 flex flex-row sm:grid sm:grid-cols-2"
+	 flex flex-col-reverse sm:grid sm:grid-cols-2"
 	>
 		<div class="w-full px-10 select-none h-full flex flex-col sm:items-start justify-center">
 			<h1 class="text-6xl">Meet Now</h1>
