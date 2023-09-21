@@ -70,7 +70,9 @@
 		await client.logout();
 	}
 
-	window.addEventListener('beforeunload',leaveChannel)
+	window.addEventListener('beforeunload',()=>{
+		stopCamera().then(()=>leaveChannel())
+	})
 
 	let handleMessageFromPeer = async (message: any, MemberId: any) => {
 		message = JSON.parse(message.text);
