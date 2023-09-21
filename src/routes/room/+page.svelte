@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Share from '$lib/base/share.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { PUBLIC_APPID } from '$env/static/public';
@@ -262,6 +263,7 @@
 			<button class={'p-2 bg-red-500 text-2xl font-semibold text-white rounded-full'} on:click|preventDefault={endCall}>
 				<Icon icon="fluent:call-end-16-regular" />
 			</button>
+			<Share title={'Meeting ID'} text={'Share this link other person'} url={$page.url.toString()} />
 		</div>
 	</main>
 {:else}
