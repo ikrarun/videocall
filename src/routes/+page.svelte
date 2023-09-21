@@ -78,8 +78,8 @@
 					>
 				</div>
 				{#if isMobile}
-					<h1 class="text-xs text-gray-600 mt-3">
-						For an optimal experience with this app, we recommend using a desktop device. Please
+					<h1 class="text-xs text-red-600 mt-3">
+						** For an optimal experience with this app, we recommend using a desktop device. Please
 						note that using a mobile device may result in a suboptimal user experience.
 					</h1>
 				{/if}
