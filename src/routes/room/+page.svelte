@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Share from '$lib/base/share.svelte';
-	import { goto } from '$app/navigation';
+	import { beforeNavigate, goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { PUBLIC_APPID } from '$env/static/public';
+	import toast, { Toaster } from 'svelte-french-toast';
 
 	import Icon from '@iconify/svelte';
 
@@ -10,7 +11,7 @@
 	let audio: boolean = true;
 
 	import AgoraRTM, { type RtmChannel, type RtmClient } from 'agora-rtm-sdk';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let APP_ID = PUBLIC_APPID;
 
@@ -72,11 +73,25 @@
 
 	onDestroy(() => {
 		// Clean up the event listener when the component is destroyed
-		window.removeEventListener('beforeunload', leaveChannel);
+		 window.addEventListener('beforeunload', leaveChannel);
+		 leaveChannel()
 	});
 
+
+	beforeNavigate(leaveChannel);
+	
+
+	try {
+		window.addEventListener('beforeunload', leaveChannel);
+
+	} catch (error) {
+		toast.error('Before Unload Not Working', {
+	position: "bottom-left"
+})
+	}
+
+
 	// Add the event listener when the component is created
-	window.addEventListener('beforeunload', leaveChannel);
 
 	let handleMessageFromPeer = async (message: any, MemberId: any) => {
 		message = JSON.parse(message.text);
@@ -231,7 +246,7 @@
 					class=" w-full h-56 object-cover"
 				/>
 			</div>
-
+<Toaster/>
 			<div
 				class={remoteStream
 					? 'aspect-video w-full rounded-md overflow-clip items-center flex justify-center h-56 bg-black'
