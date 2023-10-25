@@ -4,7 +4,7 @@
 	// @ts-ignore
 	import Icon from 'svelte-icons-pack/Icon.svelte';
 	import BiDonateHeart from 'svelte-icons-pack/bi/BiDonateHeart';
-
+import BiTestTube from 'svelte-icons-pack/bi/BiTestTube'
 	import logo from '$lib/images/logo.svg';
 	import toast, { Toaster } from 'svelte-french-toast';
 </script>
@@ -31,9 +31,9 @@
 				<Icon src={BiDonateHeart} />
 			</button>
 			<Toaster containerClassName="text-sm" />
-			<!-- <li>
-            <Icon src={BiHelpCircle} />
-        </li> -->
+			<a href="/test">
+            <Icon src={BiTestTube} />
+        </a>
 		</ul>
 	</nav>
 </div>
