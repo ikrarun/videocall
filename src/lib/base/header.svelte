@@ -31,9 +31,7 @@ import BiTestTube from 'svelte-icons-pack/bi/BiTestTube'
 				<Icon src={BiDonateHeart} />
 			</button>
 			<Toaster containerClassName="text-sm" />
-			<a href="/test">
-            <Icon src={BiTestTube} />
-        </a>
+			
 		</ul>
 	</nav>
 </div>
