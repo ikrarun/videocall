@@ -14,8 +14,8 @@
 	import { onMount } from 'svelte';
 
 	let JoinCall = async () => {
-		if (meetingID) {
-			goto(`/room?roomID=${meetingID}`);
+		if (meetingID.trim()) {
+			goto(`/room?roomID=${meetingID.trim()}`);
 		} else {
 			toast('No Room ID Provided', { position: 'bottom-left' });
 		}
